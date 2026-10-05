@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f2740">
+  <title>{{ app_name }} &mdash; Campus Navigation</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f2740'/%3E%3Cpath d='M16 5l6 19-6-4-6 4z' fill='%2338bdf8'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/" aria-label="{{ app_name }} home">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="9" fill="#17375a"/><path d="M16 5l6.2 19.5L16 20.4l-6.2 4.1z" fill="#38bdf8"/></svg>
+    </span>
+    <span class="brand-text"><strong>{{ app_name }}</strong><small>{{ app_tagline }}</small></span>
+  </a>
+  <div class="topbar-actions">
+    <button class="btn btn-emergency" id="emergencyBtn" type="button">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.3v.01"/></svg>
+      <span>Emergency</span>
+    </button>
+  </div>
+</header>
+
+<main class="app">
+
+  <!-- ============================ LEFT PANEL ============================ -->
+  <aside class="panel" id="panel">
+
+    <section class="card planner" id="planner">
+      <h1 class="card-title">Where to?</h1>
+      <p class="card-sub">Search any room, office, lab or facility on campus.</p>
+
+      <form id="routeForm" autocomplete="off" novalidate>
+        <div class="route-fields">
+          <div class="rail" aria-hidden="true"><i class="dot dot-from"></i><i class="line"></i><i class="dot dot-to"></i></div>
+          <div class="fields">
+            <div class="combo" data-role="from">
+              <label class="sr-only" for="fromInput">Starting point</label>
+              <input id="fromInput" class="combo-input" type="text" placeholder="Starting point  (e.g. Main Gate)" role="combobox" aria-expanded="false" aria-controls="fromList" aria-autocomplete="list" autocapitalize="off" spellcheck="false">
+              <button type="button" class="combo-clear" aria-label="Clear starting point" hidden>&times;</button>
+              <ul class="combo-list" id="fromList" role="listbox" hidden></ul>
+            </div>
+            <div class="combo" data-role="to">
+              <label class="sr-only" for="toInput">Destination</label>
+              <input id="toInput" class="combo-input" type="text" placeholder="Destination  (e.g. Room 301)" role="combobox" aria-expanded="false" aria-controls="toList" aria-autocomplete="list" autocapitalize="off" spellcheck="false">
+              <button type="button" class="combo-clear" aria-label="Clear destination" hidden>&times;</button>
+              <ul class="combo-list" id="toList" role="listbox" hidden></ul>
+            </div>
+          </div>
+          <button type="button" class="swap" id="swapBtn" aria-label="Swap start and destination" title="Swap">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4L3.5 7.5M7 4l3.5 3.5M17 20V4m0 16l-3.5-3.5M17 20l3.5-3.5"/></svg>
+          </button>
+        </div>
+
+        <label class="toggle">
+          <input type="checkbox" id="accessibleChk">
+          <span class="toggle-ui" aria-hidden="true"></span>
+          <span class="toggle-text"><strong>Step-free route</strong><small>Use lifts instead of stairs</small></span>
+        </label>
+
+        <div class="form-error" id="formError" role="alert" hidden></div>
+
+        <button class="btn btn-primary btn-block" id="goBtn" type="submit">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg>
+          <span>Get directions</span>
+        </button>
+      </form>
+
+      <div class="examples" id="examples">
+        <span class="examples-label">Try an example</span>
+        <button type="button" class="chip" data-from="c_gate" data-to="r213">Main Gate &rarr; Room 213</button>
+        <button type="button" class="chip" data-from="r125" data-to="r301">Room 125 &rarr; Room 301</button>
+        <button type="button" class="chip" data-from="c_canteen" data-to="lab_physics">Canteen &rarr; Physics Lab</button>
+        <button type="button" class="chip" data-from="r316" data-to="ad_principal">Room 316 &rarr; Principal Office</button>
+      </div>
+    </section>
+
+    <section class="card result" id="result" hidden>
+      <div class="emergency-banner" id="emergencyBanner" hidden>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.3v.01"/></svg>
+        <div><strong id="emergencyTitle">Emergency route</strong><span id="emergencySub"></span></div>
+      </div>
+
+      <div class="result-head">
+        <div class="result-route">
+          <span id="resFrom"></span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          <span id="resTo"></span>
+        </div>
+        <button type="button" class="link-btn" id="editBtn">Change</button>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <ol class="steps" id="steps"></ol>
+    </section>
+
+    <footer class="panel-foot">{{ app_name }} v{{ app_version }} &middot; Schematic maps, not for construction</footer>
+  </aside>
+
+  <!-- ============================== MAP ============================== -->
+  <section class="stage" aria-label="Campus map">
+    <div class="viewtabs" id="viewTabs" role="tablist" aria-label="Map views"></div>
+
+    <div class="map" id="mapWrap">
+      <svg id="mapSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2480 1753" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Campus map with route">
+        <image id="mapImg" x="0" y="0" width="2480" height="1753" href=""/>
+        <g id="bandLayer"></g>
+        <g id="routeLayer"></g>
+        <g id="markerLayer"></g>
+      </svg>
+
+      <div class="floor-ind" id="floorInd" hidden>
+        <div class="floor-ind-title" id="floorIndTitle"></div>
+        <ol class="floor-levels" id="floorLevels"></ol>
+      </div>
+
+      <div class="map-tools">
+        <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+        <button type="button" id="zoomOut" aria-label="Zoom out">&minus;</button>
+        <button type="button" id="recenter" aria-label="Fit route to screen" title="Fit route">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+      <div class="empty-hint" id="emptyHint">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></svg>
+        <span>Choose a start and a destination to see your route on the map.</span>
+      </div>
+
+      <div class="guide" id="guide" hidden>
+        <div class="guide-progress"><i id="guideBar"></i></div>
+        <div class="guide-body">
+          <div class="guide-icon" id="guideIcon"></div>
+          <div class="guide-text">
+            <div class="guide-meta" id="guideMeta"></div>
+            <div class="guide-title" id="guideTitle"></div>
+            <div class="guide-desc" id="guideDesc"></div>
+          </div>
+        </div>
+        <div class="guide-nav">
+          <button type="button" class="btn btn-ghost" id="prevBtn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg><span>Back</span>
+          </button>
+          <button type="button" class="btn btn-primary" id="nextBtn"><span>Next</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============================ EMERGENCY ============================ -->
+<dialog id="emergencyDlg" class="dialog">
+  <form method="dialog" class="dialog-inner" id="emergencyForm">
+    <div class="dialog-head danger">
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.3v.01"/></svg>
+      <div><h2>Emergency navigation</h2><p>Find the nearest safe exit or medical help from where you are.</p></div>
+    </div>
+    <div class="dialog-body">
+      <div class="combo" data-role="em">
+        <label class="field-label" for="emInput">Where are you now?</label>
+        <input id="emInput" class="combo-input" type="text" placeholder="e.g. Room 213, Library, Canteen" role="combobox" aria-expanded="false" aria-controls="emList" aria-autocomplete="list" autocapitalize="off" spellcheck="false">
+        <ul class="combo-list" id="emList" role="listbox" hidden></ul>
+      </div>
+      <div class="form-error" id="emError" role="alert" hidden></div>
+      <div class="em-actions">
+        <button type="button" class="btn btn-danger" id="emExit">Nearest exit</button>
+        <button type="button" class="btn btn-danger-outline" id="emMedical">Nearest medical room</button>
+      </div>
+      <p class="dialog-note">Emergency routes never use lifts and may use exit doors that are closed in normal use.</p>
+    </div>
+    <div class="dialog-foot"><button type="button" class="btn btn-ghost" id="emCancel">Cancel</button></div>
+  </form>
+</dialog>
+
+<script>window.BOOT = {{ boot | tojson }};</script>
+<script src="{{ asset('js/app.js') }}"></script>
+</body>
+</html>
